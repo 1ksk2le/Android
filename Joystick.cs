@@ -2,8 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input.Touch;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using static MobileGame.TextureLoader;
 
 namespace MobileGame
@@ -12,6 +10,9 @@ namespace MobileGame
     {
         public Vector2 position;
         private Player player;
+        private Vector2 smallCirclePosition;
+        private Vector2 largeCirclePosition;
+        private bool isTouching;
 
         public Joystick(Game game, Player player) : base(game)
         {
@@ -19,9 +20,11 @@ namespace MobileGame
             var viewport = GraphicsDevice.Viewport;
 
             this.player = player;
-            // Set the position of the joystick to the bottom left corner of the screen
-            position = new Vector2(0, viewport.Height) + new Vector2(0, -100);
+            isTouching = false;
+            smallCirclePosition = new Vector2(0, 0);
+            largeCirclePosition = new Vector2(viewport.Width - 200, viewport.Height - 200);
         }
+
         public override void Draw(GameTime gameTime)
         {
             // Get the SpriteBatch object from the Game instance
@@ -29,30 +32,90 @@ namespace MobileGame
 
             // Draw the texture for the joystick at the position you set earlier
             spriteBatch.Begin();
-            spriteBatch.Draw(TEX_Joystick, position, Color.White);
+            spriteBatch.Draw(TEX_Joystick_Border, largeCirclePosition - new Vector2(TEX_Joystick_Border.Width / 2, TEX_Joystick_Border.Height / 2), Color.White);
+            if (isTouching)
+            {
+                spriteBatch.Draw(TEX_Joystick, smallCirclePosition - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
+            }
+            else
+            {
+                spriteBatch.Draw(TEX_Joystick, largeCirclePosition - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
+            }
+
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
+
         public override void Update(GameTime gameTime)
         {
-            var touchState = TouchPanel.GetState();
+            TouchCollection touchCollection = TouchPanel.GetState();
 
-            if (touchState.Count > 0)
+            if (touchCollection.Count > 0)
             {
-                var touchPosition = touchState[0].Position;
-                var joystickVector = touchPosition - position;
-                var joystickAngle = (float)Math.Atan2(joystickVector.Y, joystickVector.X);
-                var joystickMagnitude = Math.Min(joystickVector.Length(), 50) / 50;
+                isTouching = true;
+                TouchLocation touchLocation = touchCollection[0];
 
-                // Calculate the player's new position based on the angle and magnitude of the joystick
-                var movementVector = new Vector2((float)Math.Cos(joystickAngle), (float)Math.Sin(joystickAngle));
-                player.position += movementVector * joystickMagnitude * player.speed;
+                // Calculate the direction vector and distance from the center of the joystick
+                Vector2 direction = touchLocation.Position - largeCirclePosition;
+                float distance = direction.Length();
+                direction.Normalize();
+
+                // Check if the touch location is within the screen boundaries
+                if (touchLocation.State == TouchLocationState.Moved && distance > 0)
+                {
+                    // Calculate the maximum distance the small circle can move from the center of the large circle
+                    float maxDistance = TEX_Joystick_Border.Width / 2 - TEX_Joystick.Width / 2;
+
+                    // Limit the movement of the small circle within the boundaries of the larger circle
+                    if (distance > maxDistance)
+                    {
+                        Vector2 maxPosition = largeCirclePosition + direction * maxDistance;
+
+                        smallCirclePosition = Vector2.Clamp(touchLocation.Position, maxPosition - new Vector2(TEX_Joystick.Width / 2), maxPosition + new Vector2(TEX_Joystick.Width / 2));
+                    }
+                    else
+                    {
+                        smallCirclePosition = touchLocation.Position;
+                    }
+
+                    // Calculate the movement direction of the player
+                    Vector2 movementDirection = smallCirclePosition - largeCirclePosition;
+                    movementDirection.Normalize();
+
+                    // Update the player's position based on the movement direction and predetermined speed
+                    player.position += movementDirection * player.speed;
+                }
+
+                if (distance > 0)
+                {
+                    float angle = (float)Math.Atan2(-direction.Y, direction.X);
+
+                    if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
+                    {
+                        player.direction = PlayerDirection.Right;
+                    }
+                    else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
+                    {
+                        player.direction = PlayerDirection.Up;
+                    }
+                    else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
+                    {
+                        player.direction = PlayerDirection.Left;
+                    }
+                    else
+                    {
+                        player.direction = PlayerDirection.Down;
+                    }
+                }
+            }
+            else
+            {
+                isTouching = false;
             }
 
             base.Update(gameTime);
         }
 
     }
-
 }

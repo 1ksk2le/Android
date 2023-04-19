@@ -5,15 +5,24 @@ using static MobileGame.TextureLoader;
 
 namespace MobileGame
 {
+    public enum PlayerDirection
+    {
+        Up,
+        Down,
+        Left,
+        Right
+    }
     public class Player : DrawableGameComponent
     {
         // Fields
         public Vector2 position;
-        public Vector2 velocity;
-        public float speed = 0.3f;
 
-        const int frameCount = 4;
-        static int currentFrame = 0;
+        public Vector2 velocity;
+        public float speed = 1f;
+
+        private const int frameCount = 4;
+        private static int currentFrame = 0;
+        public PlayerDirection direction { get; set; } = PlayerDirection.Down;
 
         // Constructor
         public Player(Game game) : base(game)
@@ -31,9 +40,7 @@ namespace MobileGame
         {
             KeyboardState keyboardState = Keyboard.GetState();
 
-            Movement(gameTime, keyboardState);
-            Animate(gameTime, keyboardState);
-            
+            Animate(gameTime);
 
             base.Update(gameTime);
         }
@@ -47,38 +54,22 @@ namespace MobileGame
             Rectangle animRect = new Rectangle(0, TEX_Player.Height / frameCount * currentFrame, TEX_Player.Width, TEX_Player.Height / frameCount);
 
             spriteBatch.Begin();
-            spriteBatch.Draw(TEX_Player, destinationRect, animRect, Color.White);
+            spriteBatch.Draw(TEX_Player, position, animRect, Color.White, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
 
-        internal void Movement(GameTime gameTime, KeyboardState key)
+        internal void Animate(GameTime gameTime)
         {
-            velocity = Vector2.Zero;
-            if (key.IsKeyDown(Keys.Left))
-                velocity.X -= speed;
-            if (key.IsKeyDown(Keys.Right))
-                velocity.X += speed;
-            if (key.IsKeyDown(Keys.Up))
-                velocity.Y -= speed;
-            if (key.IsKeyDown(Keys.Down))
-                velocity.Y += speed;
-
-            position += velocity;
-        }
-
-        internal void Animate(GameTime gameTime, KeyboardState key)
-        {
-            if (key.IsKeyDown(Keys.Left))
+            if (direction == PlayerDirection.Left)
                 currentFrame = 3;
-            if (key.IsKeyDown(Keys.Right))
+            if (direction == PlayerDirection.Right)
                 currentFrame = 2;
-            if (key.IsKeyDown(Keys.Up))
+            if (direction == PlayerDirection.Up)
                 currentFrame = 1;
-            if (key.IsKeyDown(Keys.Down))
+            if (direction == PlayerDirection.Down)
                 currentFrame = 0;
         }
     }
-
 }
