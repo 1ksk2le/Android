@@ -12,13 +12,14 @@ namespace MobileGame
         Left,
         Right
     }
+
     public class Player : DrawableGameComponent
     {
         // Fields
         public Vector2 position;
 
         public Vector2 velocity;
-        public float speed = 1f;
+        public float speed = 200f;
 
         private const int frameCount = 4;
         private static int currentFrame = 0;

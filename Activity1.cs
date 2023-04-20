@@ -12,7 +12,7 @@ namespace MobileGame
         Icon = "@drawable/icon",
         AlwaysRetainTaskState = true,
         LaunchMode = LaunchMode.SingleInstance,
-        ScreenOrientation = ScreenOrientation.FullUser,
+        ScreenOrientation = ScreenOrientation.Landscape,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize
     )]
     public class Activity1 : AndroidGameActivity
@@ -26,8 +26,15 @@ namespace MobileGame
 
             _game = new Game1();
             _view = _game.Services.GetService(typeof(View)) as View;
-
             SetContentView(_view);
+
+            Window.DecorView.SystemUiVisibility = (Android.Views.StatusBarVisibility)
+                (SystemUiFlags.Fullscreen
+                | SystemUiFlags.HideNavigation
+                | SystemUiFlags.ImmersiveSticky
+                | SystemUiFlags.LayoutHideNavigation
+                | SystemUiFlags.LayoutFullscreen);
+
             _game.Run();
         }
     }

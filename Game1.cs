@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Threading;
 
 namespace MobileGame
 {
@@ -29,28 +28,11 @@ namespace MobileGame
             Components.Add(player);
 
             base.Initialize();
-
-            ForceLandscapeOrientation();
         }
-
-        private void ForceLandscapeOrientation()
-        {
-            graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
-            graphics.ApplyChanges();
-
-            // Wait for the device to rotate to a landscape orientation
-            while (GraphicsDevice.PresentationParameters.DisplayOrientation != DisplayOrientation.LandscapeLeft && GraphicsDevice.PresentationParameters.DisplayOrientation != DisplayOrientation.LandscapeRight)
-            {
-                Thread.Sleep(100);
-            }
-        }
-
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService(spriteBatch);
-
-
         }
 
         protected override void Update(GameTime gameTime)
@@ -65,7 +47,7 @@ namespace MobileGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.LightGray);
 
             player.Draw(gameTime);
 
