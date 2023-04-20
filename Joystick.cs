@@ -13,6 +13,7 @@ namespace MobileGame
         private Vector2 smallCirclePosition;
         private Vector2 largeCirclePosition;
         private bool isTouching;
+        private bool isTouchingLeftSide;
 
         public Joystick(Game game, Player player) : base(game)
         {
@@ -20,6 +21,7 @@ namespace MobileGame
 
             this.player = player;
             isTouching = false;
+            isTouchingLeftSide = false;
             smallCirclePosition = new Vector2(0, 0);
             largeCirclePosition = new Vector2(300, viewport.Height - 300);
         }
@@ -30,7 +32,7 @@ namespace MobileGame
 
             spriteBatch.Begin();
 
-            if (isTouching)
+            if (isTouchingLeftSide)
             {
                 spriteBatch.Draw(TEX_Joystick_Border, largeCirclePosition - new Vector2(TEX_Joystick_Border.Width / 2, TEX_Joystick_Border.Height / 2), Color.White);
                 spriteBatch.Draw(TEX_Joystick, smallCirclePosition - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
@@ -57,8 +59,9 @@ namespace MobileGame
                 direction.Normalize();
 
                 //EKRANDA DOKUNDUĞUMUZ YERİN EKRANDA OLUP OLMADIĞINA BAK
-                if (touchLocation.State == TouchLocationState.Moved && distance > 0)
+                if (touchLocation.Position.X < GraphicsDevice.Viewport.Width / 2)
                 {
+                    isTouchingLeftSide = true;
                     //UFAK ÇEMBERİN BÜYÜK ÇEMBERDEN NE KADAR UZAKLAŞABİLECEĞİNE BAK
                     float maxDistance = TEX_Joystick_Border.Width / 2 - TEX_Joystick.Width / 2;
 
@@ -80,33 +83,35 @@ namespace MobileGame
 
                     //POZİSYONU GÜNCELLE
                     player.position += movementDirection * player.speed / 100f;
+
+                    if (distance > 0)
+                    {
+                        float angle = (float)Math.Atan2(-direction.Y, direction.X);
+
+                        if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
+                        {
+                            player.direction = PlayerDirection.Right;
+                        }
+                        else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
+                        {
+                            player.direction = PlayerDirection.Up;
+                        }
+                        else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
+                        {
+                            player.direction = PlayerDirection.Left;
+                        }
+                        else
+                        {
+                            player.direction = PlayerDirection.Down;
+                        }
+                    }
                 }
 
-                if (distance > 0)
-                {
-                    float angle = (float)Math.Atan2(-direction.Y, direction.X);
-
-                    if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
-                    {
-                        player.direction = PlayerDirection.Right;
-                    }
-                    else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
-                    {
-                        player.direction = PlayerDirection.Up;
-                    }
-                    else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
-                    {
-                        player.direction = PlayerDirection.Left;
-                    }
-                    else
-                    {
-                        player.direction = PlayerDirection.Down;
-                    }
-                }
             }
             else
             {
                 isTouching = false;
+                isTouchingLeftSide = false;
             }
 
             base.Update(gameTime);
