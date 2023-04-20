@@ -82,6 +82,7 @@ namespace MobileGame
                     movementDirection.Normalize();
 
                     //POZİSYONU GÜNCELLE
+                    player.direction = movementDirection;
                     player.position += movementDirection * player.speed / 100f;
 
                     if (distance > 0)
@@ -90,19 +91,19 @@ namespace MobileGame
 
                         if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
                         {
-                            player.direction = PlayerDirection.Right;
+                            player.facedWay = PlayerDirection.Right;
                         }
                         else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
                         {
-                            player.direction = PlayerDirection.Up;
+                            player.facedWay = PlayerDirection.Up;
                         }
                         else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
                         {
-                            player.direction = PlayerDirection.Left;
+                            player.facedWay = PlayerDirection.Left;
                         }
                         else
                         {
-                            player.direction = PlayerDirection.Down;
+                            player.facedWay = PlayerDirection.Down;
                         }
                     }
                 }

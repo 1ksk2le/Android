@@ -11,6 +11,7 @@ namespace MobileGame
 
         private Player player;
         private Joystick joystick;
+        private ProjectileManager projectile;
 
         public Game1()
         {
@@ -22,7 +23,9 @@ namespace MobileGame
         protected override void Initialize()
         {
             TextureLoader.LoadAllTextures(Services);
-            player = new Player(this);
+
+            projectile = new ProjectileManager();
+            player = new Player(this, projectile);
             joystick = new Joystick(this, player);
             Components.Add(joystick);
             Components.Add(player);
@@ -33,6 +36,7 @@ namespace MobileGame
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService(spriteBatch);
+            projectile.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -40,6 +44,7 @@ namespace MobileGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            projectile.Update(gameTime);
             player.Update(gameTime);
 
             base.Update(gameTime);
@@ -49,6 +54,7 @@ namespace MobileGame
         {
             GraphicsDevice.Clear(Color.LightGray);
 
+            projectile.Draw(spriteBatch);
             player.Draw(gameTime);
 
             base.Draw(gameTime);

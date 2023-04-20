@@ -15,19 +15,19 @@ namespace MobileGame
 
     public class Player : DrawableGameComponent
     {
-        // Fields
-        public Vector2 position;
-
-        public Vector2 velocity;
-        public float speed = 200f;
-
         private const int frameCount = 4;
         private static int currentFrame = 0;
-        public PlayerDirection direction { get; set; } = PlayerDirection.Down;
-
+        private ProjectileManager projectile;
+        public PlayerDirection facedWay { get; set; } = PlayerDirection.Down;
+        // Fields
+        public Vector2 direction;
+        public Vector2 position;
+        public Vector2 velocity;
+        public float speed = 200f;
         // Constructor
-        public Player(Game game) : base(game)
+        public Player(Game game, ProjectileManager projectileManager) : base(game)
         {
+            this.projectile = projectileManager;
         }
 
         // Load content
@@ -40,8 +40,12 @@ namespace MobileGame
         public override void Update(GameTime gameTime)
         {
             KeyboardState keyboardState = Keyboard.GetState();
-
             Animate(gameTime);
+
+            if (facedWay == PlayerDirection.Left)
+            {
+                projectile.AddProjectile(0, 0, 15, 2, new Vector2(50f, 50f), position, true, false, 0.5f, 0f, Color.Red);
+            }
 
             base.Update(gameTime);
         }
@@ -58,18 +62,19 @@ namespace MobileGame
             spriteBatch.Draw(TEX_Player, position, animRect, Color.White, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
             spriteBatch.End();
 
+
             base.Draw(gameTime);
         }
 
         internal void Animate(GameTime gameTime)
         {
-            if (direction == PlayerDirection.Left)
+            if (facedWay == PlayerDirection.Left)
                 currentFrame = 3;
-            if (direction == PlayerDirection.Right)
+            if (facedWay == PlayerDirection.Right)
                 currentFrame = 2;
-            if (direction == PlayerDirection.Up)
+            if (facedWay == PlayerDirection.Up)
                 currentFrame = 1;
-            if (direction == PlayerDirection.Down)
+            if (facedWay == PlayerDirection.Down)
                 currentFrame = 0;
         }
     }
