@@ -10,20 +10,20 @@ namespace MobileGame
     {
         public Vector2 position;
         private Player player;
-        private Vector2 smallCirclePosition;
-        private Vector2 largeCirclePosition;
-        private bool isTouching;
-        private bool isTouchingLeftSide;
+        private Vector2 movementSmallPos;
+        private Vector2 attackSmallPos;
+        private Vector2 movementLargePos;
+        private Vector2 attackLargePos;
 
         public Joystick(Game game, Player player) : base(game)
         {
             var viewport = GraphicsDevice.Viewport;
 
             this.player = player;
-            isTouching = false;
-            isTouchingLeftSide = false;
-            smallCirclePosition = new Vector2(0, 0);
-            largeCirclePosition = new Vector2(300, viewport.Height - 300);
+            movementSmallPos = new Vector2(0, 0);
+            attackSmallPos = new Vector2(0, 0);
+            movementLargePos = new Vector2(300, viewport.Height - 300);
+            attackLargePos = new Vector2(viewport.Width - 300, viewport.Height - 300);
         }
 
         public override void Draw(GameTime gameTime)
@@ -32,16 +32,21 @@ namespace MobileGame
 
             spriteBatch.Begin();
 
-            if (isTouchingLeftSide)
+            TouchCollection touchCollection = TouchPanel.GetState();
+            foreach (TouchLocation touchLocation in touchCollection)
             {
-                spriteBatch.Draw(TEX_Joystick_Border, largeCirclePosition - new Vector2(TEX_Joystick_Border.Width / 2, TEX_Joystick_Border.Height / 2), Color.White);
-                spriteBatch.Draw(TEX_Joystick, smallCirclePosition - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
+                if (touchLocation.Position.X < GraphicsDevice.Viewport.Width / 2)
+                {
+                    spriteBatch.Draw(TEX_Joystick_Border, movementLargePos - new Vector2(TEX_Joystick_Border.Width / 2, TEX_Joystick_Border.Height / 2), Color.LightPink);
+                    spriteBatch.Draw(TEX_Joystick, movementSmallPos - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
+                }
+                if (touchLocation.Position.X >= GraphicsDevice.Viewport.Width / 2)
+                {
+                    spriteBatch.Draw(TEX_Joystick_Border, attackLargePos - new Vector2(TEX_Joystick_Border.Width / 2, TEX_Joystick_Border.Height / 2), Color.LightCyan);
+                    spriteBatch.Draw(TEX_Joystick, attackSmallPos - new Vector2(TEX_Joystick.Width / 2, TEX_Joystick.Height / 2), Color.White);
+                }
             }
-
-
-
             spriteBatch.End();
-
             base.Draw(gameTime);
         }
 
@@ -49,46 +54,34 @@ namespace MobileGame
         {
             TouchCollection touchCollection = TouchPanel.GetState();
 
-            if (touchCollection.Count > 0)
+            // Update the movement joystick
+            foreach (TouchLocation touchLocation in touchCollection)
             {
-                isTouching = true;
-                TouchLocation touchLocation = touchCollection[0];
-
-                Vector2 direction = touchLocation.Position - largeCirclePosition;
-                float distance = direction.Length();
-                direction.Normalize();
-
-                //EKRANDA DOKUNDUĞUMUZ YERİN EKRANDA OLUP OLMADIĞINA BAK
                 if (touchLocation.Position.X < GraphicsDevice.Viewport.Width / 2)
                 {
-                    isTouchingLeftSide = true;
-                    //UFAK ÇEMBERİN BÜYÜK ÇEMBERDEN NE KADAR UZAKLAŞABİLECEĞİNE BAK
-                    float maxDistance = TEX_Joystick_Border.Width / 2 - TEX_Joystick.Width / 2;
+                    Vector2 direction = touchLocation.Position - movementLargePos;
+                    float distance = direction.Length();
+                    direction.Normalize();
 
-                    //UFAK ÇEMBERİN DİĞER ÇEMBER İÇİNDEKİ HAREKETİNİ LİMİTLE
+                    float maxDistance = TEX_Joystick_Border.Width / 2 - TEX_Joystick.Width / 2;
                     if (distance > maxDistance)
                     {
-                        Vector2 maxPosition = largeCirclePosition + direction * maxDistance;
-
-                        smallCirclePosition = Vector2.Clamp(touchLocation.Position, maxPosition - new Vector2(TEX_Joystick.Width / 2), maxPosition + new Vector2(TEX_Joystick.Width / 2));
+                        Vector2 maxPosition = movementLargePos + direction * maxDistance;
+                        movementSmallPos = Vector2.Clamp(touchLocation.Position, maxPosition - new Vector2(TEX_Joystick.Width / 2), maxPosition + new Vector2(TEX_Joystick.Width / 2));
                     }
                     else
                     {
-                        smallCirclePosition = touchLocation.Position;
+                        movementSmallPos = touchLocation.Position;
                     }
 
-                    // OYUNCUNUN HAREKET YÖNÜNÜNÜ HESAPLA
-                    Vector2 movementDirection = smallCirclePosition - largeCirclePosition;
+                    Vector2 movementDirection = movementSmallPos - movementLargePos;
                     movementDirection.Normalize();
-
-                    //POZİSYONU GÜNCELLE
                     player.direction = movementDirection;
                     player.position += movementDirection * player.speed / 100f;
 
-                    if (distance > 0)
+                    if (distance > 0 && !player.isAttacking)
                     {
                         float angle = (float)Math.Atan2(-direction.Y, direction.X);
-
                         if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
                         {
                             player.facedWay = PlayerDirection.Right;
@@ -107,12 +100,59 @@ namespace MobileGame
                         }
                     }
                 }
+                if (touchLocation.Position.X >= GraphicsDevice.Viewport.Width / 2)
+                {
+                    Vector2 direction = touchLocation.Position - attackLargePos;
+                    float distance = direction.Length();
+                    direction.Normalize();
 
+                    float maxDistance = TEX_Joystick_Border.Width / 2 - TEX_Joystick.Width / 2;
+                    if (distance > maxDistance)
+                    {
+                        Vector2 maxPosition = attackLargePos + direction * maxDistance;
+                        attackSmallPos = Vector2.Clamp(touchLocation.Position, maxPosition - new Vector2(TEX_Joystick.Width / 2), maxPosition + new Vector2(TEX_Joystick.Width / 2));
+                    }
+                    else
+                    {
+                        attackSmallPos = touchLocation.Position;
+                    }
+
+                    Vector2 attackingDirection = attackSmallPos - attackLargePos;
+                    attackingDirection.Normalize();
+                    player.attackDireciton = attackingDirection;
+                    player.isAttacking = true;
+
+                    if (distance > 0 && player.isAttacking)
+                    {
+                        float angle = (float)Math.Atan2(-direction.Y, direction.X);
+                        if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
+                        {
+                            player.facedWay = PlayerDirection.Right;
+                        }
+                        else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
+                        {
+                            player.facedWay = PlayerDirection.Up;
+                        }
+                        else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
+                        {
+                            player.facedWay = PlayerDirection.Left;
+                        }
+                        else
+                        {
+                            player.facedWay = PlayerDirection.Down;
+                        }
+                    }
+                }
+                else
+                {
+                    player.isAttacking = false;
+                    player.attackDireciton = Vector2.Zero;
+                }
             }
-            else
+
+            if (touchCollection.Count == 0)
             {
-                isTouching = false;
-                isTouchingLeftSide = false;
+                player.isAttacking = false;
             }
 
             base.Update(gameTime);

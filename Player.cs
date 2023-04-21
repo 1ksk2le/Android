@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using static MobileGame.TextureLoader;
 
 namespace MobileGame
@@ -21,13 +20,17 @@ namespace MobileGame
         public PlayerDirection facedWay { get; set; } = PlayerDirection.Down;
         // Fields
         public Vector2 direction;
+        public Vector2 attackDireciton;
         public Vector2 position;
         public Vector2 velocity;
         public float speed = 200f;
+        public bool isAttacking;
         // Constructor
         public Player(Game game, ProjectileManager projectileManager) : base(game)
         {
             this.projectile = projectileManager;
+            attackDireciton = Vector2.Zero;
+            isAttacking = false;
         }
 
         // Load content
@@ -39,12 +42,11 @@ namespace MobileGame
         // Update method
         public override void Update(GameTime gameTime)
         {
-            KeyboardState keyboardState = Keyboard.GetState();
             Animate(gameTime);
 
-            if (facedWay == PlayerDirection.Left)
+            if (isAttacking)
             {
-                projectile.AddProjectile(0, 0, 15, 2, new Vector2(50f, 50f), position, true, false, 0.5f, 0f, Color.Red);
+                projectile.AddProjectile(0, 0, 15, 2, attackDireciton * 500f, position, true, false, 0.5f, 0f, Color.Red);
             }
 
             base.Update(gameTime);
