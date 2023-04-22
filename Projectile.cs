@@ -12,31 +12,37 @@ namespace MobileGame
         public int ID { get; private set; }
         public int AI { get; private set; }
         public Texture2D Texture { get; private set; }
-        public int Damage { get; set; }
+        public int MinDamage { get; set; }
+        public int MaxDamage { get; set; }
         public int LifeTime { get; set; }
         public Vector2 Velocity { get; set; }
+        public Vector2 Direction { get; set; }
         public Vector2 Position { get; set; }
         public bool IsFriendly { get; set; }
         public bool IsEnemy { get; set; }
         public float Scale { get; set; }
         public float Rotation { get; set; }
+        public float Speed { get; set; }
         public Color Color { get; set; }
         public TimeSpan lifeTime;
         public TimeSpan elapsedTime;
 
-        public Projectile(int id, int ai, Texture2D texture, int damage, int lifeTime, Vector2 velocity, Vector2 position, bool isFriendly, bool isEnemy, float scale, float rotation, Color color)
+        public Projectile(int id, int ai, Texture2D texture, int minDamage, int maxDamage, int lifeTime, Vector2 velocity, Vector2 direction, Vector2 position, bool isFriendly, bool isEnemy, float scale, float rotation, float speed, Color color)
         {
             ID = id;
             AI = ai;
             Texture = texture;
-            Damage = damage;
+            MinDamage = minDamage;
+            MaxDamage = maxDamage;
             LifeTime = lifeTime;
             Velocity = velocity;
+            Direction = direction;
             Position = position;
             IsEnemy = isEnemy;
             IsFriendly = isFriendly;
             Scale = scale;
             Rotation = rotation;
+            Speed = speed;
             Color = color;
 
 
@@ -47,7 +53,7 @@ namespace MobileGame
         public void Update(GameTime gameTime)
         {
             // Update the position of the projectile based on its velocity
-            Position += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Position += Velocity * Direction * Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
             elapsedTime += gameTime.ElapsedGameTime;
 
             // Check if the projectile has exceeded its lifetime
@@ -66,13 +72,13 @@ namespace MobileGame
             projectileTextures = new Dictionary<int, Texture2D>();
         }
 
-        public void AddProjectile(int id, int ai, int damage, int lifeTime, Vector2 velocity, Vector2 position, bool friendly, bool enemy, float scale, float rotation, Color color)
+        public void AddProjectile(int id, int ai, int minDamage, int maxDamage, int lifeTime, Vector2 velocity, Vector2 direction, Vector2 position, bool friendly, bool enemy, float scale, float rotation, float speed, Color color)
         {
             // Get the texture for the given ID
             Texture2D texture = projectileTextures[id];
 
             // Create a new projectile and add it to the list
-            Projectile projectile = new Projectile(id, ai, texture, damage, lifeTime, velocity, position, friendly, enemy, scale, rotation, color);
+            Projectile projectile = new Projectile(id, ai, texture, minDamage, maxDamage, lifeTime, velocity, direction, position, friendly, enemy, scale, rotation, speed, color);
             projectiles.Add(projectile);
         }
 

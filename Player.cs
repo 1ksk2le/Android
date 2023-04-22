@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using static MobileGame.Game1;
 using static MobileGame.TextureLoader;
 
 namespace MobileGame
@@ -17,6 +18,8 @@ namespace MobileGame
         private const int frameCount = 4;
         private static int currentFrame = 0;
         private ProjectileManager projectile;
+        private ItemManager item;
+        private double shootTimer = 0;
         public PlayerDirection facedWay { get; set; } = PlayerDirection.Down;
         // Fields
         public Vector2 direction;
@@ -25,9 +28,15 @@ namespace MobileGame
         public Vector2 velocity;
         public float speed = 200f;
         public bool isAttacking;
+        public int equippedWeaponID;
+
+        private Item EquippedWeapon => item.GetItem(equippedWeaponID);
+
+        private Texture2D weaponTexture;
         // Constructor
-        public Player(Game game, ProjectileManager projectileManager) : base(game)
+        public Player(Game game, ProjectileManager projectileManager, ItemManager item) : base(game)
         {
+            this.item = item;
             this.projectile = projectileManager;
             attackDireciton = Vector2.Zero;
             isAttacking = false;
@@ -42,14 +51,15 @@ namespace MobileGame
         // Update method
         public override void Update(GameTime gameTime)
         {
-            Animate(gameTime);
 
-            if (isAttacking)
-            {
-                projectile.AddProjectile(0, 0, 15, 2, attackDireciton * 500f, position, true, false, 0.5f, 0f, Color.Red);
-            }
+            Animate(gameTime);
+            Shoot(gameTime, 1f);
+
+
 
             base.Update(gameTime);
+
+            equippedWeaponID = 0;
         }
 
         // Draw method
@@ -62,12 +72,39 @@ namespace MobileGame
 
             spriteBatch.Begin();
             spriteBatch.Draw(TEX_Player, position, animRect, Color.White, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+            spriteBatch.Draw(EquippedWeapon.Texture, position + new Vector2(80, 0), null, Color.White, 45f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, EquippedWeapon.Name, position + new Vector2(0, 100), Color.Black);
+            spriteBatch.DrawString(TestFont, EquippedWeapon.MinDamage.ToString(), position + new Vector2(0, 110), Color.Black);
+            spriteBatch.DrawString(TestFont, EquippedWeapon.MaxDamage.ToString(), position + new Vector2(0, 120), Color.Black);
+            spriteBatch.DrawString(TestFont, EquippedWeapon.UseTime.ToString(), position + new Vector2(0, 130), Color.Black);
             spriteBatch.End();
 
 
             base.Draw(gameTime);
         }
 
+        internal void Shoot(GameTime gameTime, float damageModifier)
+        {
+            if (isAttacking && gameTime.TotalGameTime.TotalMilliseconds - shootTimer >= EquippedWeapon.UseTime && EquippedWeapon.CanShoot)
+            {
+                projectile.AddProjectile(EquippedWeapon.ShootType,
+                    0,
+                    (int)(EquippedWeapon.MinDamage * damageModifier),
+                    (int)(EquippedWeapon.MaxDamage * damageModifier),
+                    2,
+                    Vector2.One,
+                    attackDireciton,
+                    position + new Vector2(TEX_Player.Width / 2, TEX_Player.Height / 2 / frameCount),
+                    true,
+                    false,
+                    0.5f,
+                    0f,
+                    500f,
+                    Color.White);
+
+                shootTimer = gameTime.TotalGameTime.TotalMilliseconds;
+            }
+        }
         internal void Animate(GameTime gameTime)
         {
             if (facedWay == PlayerDirection.Left)
