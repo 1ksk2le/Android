@@ -12,7 +12,7 @@ namespace MobileGame
         private Player player;
         private Joystick joystick;
         private ProjectileManager projectile;
-        private ItemManager item;
+        private WeaponManager weapon;
 
         public static SpriteFont TestFont;
 
@@ -28,8 +28,8 @@ namespace MobileGame
             TextureLoader.LoadAllTextures(Services);
 
             projectile = new ProjectileManager();
-            item = new ItemManager();
-            player = new Player(this, projectile, item);
+            weapon = new WeaponManager();
+            player = new Player(this, projectile, weapon);
             joystick = new Joystick(this, player);
             Components.Add(joystick);
             Components.Add(player);
@@ -42,7 +42,7 @@ namespace MobileGame
             Services.AddService(spriteBatch);
             TestFont = Content.Load<SpriteFont>("Font_Test");
             projectile.LoadContent(Content);
-            item.LoadContent(Content);
+            weapon.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -51,7 +51,7 @@ namespace MobileGame
                 Exit();
 
             projectile.Update(gameTime);
-            item.Update(gameTime);
+            weapon.Update(gameTime);
             player.Update(gameTime);
 
             base.Update(gameTime);

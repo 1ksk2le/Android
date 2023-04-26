@@ -81,22 +81,15 @@ namespace MobileGame
 
                     if (distance > 0 && !player.isAttacking)
                     {
-                        float angle = (float)Math.Atan2(-direction.Y, direction.X);
-                        if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
+                        float angle = MathHelper.ToDegrees((float)Math.Atan2(direction.Y, direction.X));
+                        angle += 180;  // Add 180 degrees
+                        if (angle >= 90 && angle <= 270)
                         {
                             player.facedWay = PlayerDirection.Right;
                         }
-                        else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
-                        {
-                            player.facedWay = PlayerDirection.Up;
-                        }
-                        else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
-                        {
-                            player.facedWay = PlayerDirection.Left;
-                        }
                         else
                         {
-                            player.facedWay = PlayerDirection.Down;
+                            player.facedWay = PlayerDirection.Left;
                         }
                     }
                 }
@@ -124,29 +117,21 @@ namespace MobileGame
 
                     if (distance > 0 && player.isAttacking)
                     {
-                        float angle = (float)Math.Atan2(-direction.Y, direction.X);
-                        if (angle >= -MathHelper.PiOver4 && angle < MathHelper.PiOver4)
+                        float angle = MathHelper.ToDegrees((float)Math.Atan2(direction.Y, direction.X));
+                        angle += 180;  // Add 180 degrees
+                        if (angle >= 90 && angle <= 270)
                         {
                             player.facedWay = PlayerDirection.Right;
                         }
-                        else if (angle >= MathHelper.PiOver4 && angle < 3 * MathHelper.PiOver4)
-                        {
-                            player.facedWay = PlayerDirection.Up;
-                        }
-                        else if (angle >= 3 * MathHelper.PiOver4 || angle < -3 * MathHelper.PiOver4)
+                        else
                         {
                             player.facedWay = PlayerDirection.Left;
                         }
-                        else
-                        {
-                            player.facedWay = PlayerDirection.Down;
-                        }
                     }
-                }
-                else
-                {
-                    player.isAttacking = false;
-                    player.attackDireciton = Vector2.Zero;
+                    if (touchLocation.State == TouchLocationState.Released)
+                    {
+                        player.isAttacking = false;
+                    }
                 }
             }
 
