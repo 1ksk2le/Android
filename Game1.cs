@@ -12,7 +12,7 @@ namespace MobileGame
         private Player player;
         private Joystick joystick;
         private ProjectileManager projectile;
-        private WeaponManager weapon;
+        private ItemManager weapon;
 
         public static SpriteFont TestFont;
 
@@ -28,7 +28,7 @@ namespace MobileGame
             TextureLoader.LoadAllTextures(Services);
 
             projectile = new ProjectileManager();
-            weapon = new WeaponManager();
+            weapon = new ItemManager(player);
             player = new Player(this, projectile, weapon);
             joystick = new Joystick(this, player);
             Components.Add(joystick);
