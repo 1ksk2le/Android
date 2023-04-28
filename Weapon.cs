@@ -30,41 +30,42 @@ namespace MobileGame
             Texture = texture;
         }
 
-        private int oldModifier = -1;
-        private bool isEquipped = false;
+        public float TotalMinDamage, TotalMaxDamage, AdditionalDamage, ModifierDamage, EnchantDamage;
 
         public void Update(GameTime gameTime)
         {
             string ModifierName = "";
             string EnchantName = "";
 
-            // Check if Modifier value has changed
-            if (Modifier != oldModifier)
+            AdditionalDamage = ModifierDamage + EnchantDamage;
+            if (AdditionalDamage != 0f)
             {
-                oldModifier = Modifier;
-                isEquipped = false;
+                TotalMinDamage = MinDamage * AdditionalDamage;
+                TotalMaxDamage = MaxDamage * AdditionalDamage;
+            }
+            else
+            {
+                TotalMinDamage = MinDamage;
+                TotalMaxDamage = MaxDamage;
             }
 
             switch (Modifier)
             {
+                case 0:
+                    ModifierName = "";
+                    ModifierDamage = 0f;
+                    break;
+
                 case 1:
                     ModifierName = "Reforged";
-                    if (!isEquipped)
-                    {
-                        MinDamage += 10;
-                        MaxDamage += 10;
-                        isEquipped = true;
-                    }
+                    ModifierDamage = 1.1f;
                     break;
+
                 case 2:
-                    ModifierName = "Smelt";
-                    if (!isEquipped)
-                    {
-                        MinDamage -= 5;
-                        MaxDamage -= 5;
-                        isEquipped = true;
-                    }
+                    ModifierName = "Broken";
+                    ModifierDamage = 0.95f;
                     break;
+
                 default:
                     ModifierName = "";
                     break;
@@ -72,20 +73,40 @@ namespace MobileGame
 
             switch (Enchant)
             {
+                case 0:
+                    EnchantName = "";
+                    break;
+
                 case 1:
-                    EnchantName = "Flames";
+                    EnchantName = " of Flames";
                     break;
+
                 case 2:
-                    EnchantName = "Frost";
+                    EnchantName = " of Frost";
                     break;
+
                 default:
                     EnchantName = "";
                     break;
             }
 
-            Name = ModifierName + " " + BaseName + " of " + EnchantName;
+            if (Modifier > 0 && Enchant > 0)
+            {
+                Name = ModifierName + " " + BaseName + EnchantName;
+            }
+            else if (Modifier > 0 && Enchant <= 0)
+            {
+                Name = ModifierName + " " + BaseName;
+            }
+            else if (Enchant > 0 && Modifier <= 0)
+            {
+                Name = BaseName + EnchantName;
+            }
+            else if (Enchant <= 0 && Modifier <= 0)
+            {
+                Name = BaseName;
+            }
         }
-
     }
 
     public class WeaponManager
@@ -119,17 +140,17 @@ namespace MobileGame
             weapons.Add(newItem);
         }
 
-
         public void LoadContent(ContentManager content)
         {
             weaponLoader.Add(0, (WEP_Test_Wand, 0, 10, 20, 200, 0, 0, 0.4f, "Test Wand", "Staff", true, false));
-            weaponLoader.Add(1, (WEP_Test_Sword, 1, 15, 25, 500, 0, 0, 1f, "Magic Sword", "Sword", true, false));
+            weaponLoader.Add(1, (WEP_Test_Sword, 1, 100, 200, 500, 0, 0, 1f, "Test Sword", "Sword", true, false));
 
             foreach (int id in weaponLoader.Keys)
             {
                 NewWeapon(id);
             }
         }
+
         public void Update(GameTime gameTime)
         {
             foreach (Weapon item in weapons)
@@ -151,9 +172,8 @@ namespace MobileGame
             throw new ArgumentException($"Bu {id} numarali id'ye sahip silah yok!", nameof(id));
         }
 
-        float animationTime = 0;
-        float currentAngle = 0f;
-        bool isAnimationForward = true;
+        private float animationTime = 0;
+        private float currentAngle = 0f;
+        private bool isAnimationForward = true;
     }
 }
-

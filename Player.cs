@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using static MobileGame.Game1;
 using static MobileGame.TextureLoader;
 
@@ -13,15 +14,17 @@ namespace MobileGame
 
     public class Player : DrawableGameComponent
     {
-        private const int frameCount = 4;
+        private const int frameCount = 1;
         private static int currentFrame = 0;
         private ProjectileManager projectile;
         private WeaponManager item;
         private double shootTimer = 0;
         public PlayerDirection facedWay { get; set; } = PlayerDirection.Right;
+
         // Fields
-        public Vector2 direction;
-        public Vector2 attackDireciton;
+        public Vector2 movementDirection;
+
+        public Vector2 attackDirection;
         public Vector2 position;
         public Vector2 velocity;
         public float speed = 200f;
@@ -29,15 +32,18 @@ namespace MobileGame
         public int EquippedWeaponID;
         public int EquippedWeaponModifier;
 
+        private const float baseScale = 2f;
+
         private Weapon EquippedWeapon => item.GetItem(EquippedWeaponID);
 
         private Texture2D weaponTexture;
+
         // Constructor
         public Player(Game game, ProjectileManager projectileManager, WeaponManager item) : base(game)
         {
             this.item = item;
             this.projectile = projectileManager;
-            attackDireciton = Vector2.Zero;
+            attackDirection = Vector2.Zero;
             isAttacking = false;
         }
 
@@ -50,21 +56,17 @@ namespace MobileGame
         // Update method
         public override void Update(GameTime gameTime)
         {
-
             Animate(gameTime);
             Shoot(gameTime, 1f);
-
-
 
             base.Update(gameTime);
 
             EquippedWeaponID = 1;
             EquippedWeapon.Modifier = 1;
-            EquippedWeapon.Enchant = 1;
+            EquippedWeapon.Enchant = 2;
             //position = new Vector2(100, 100);
         }
 
-        // Draw method
         public override void Draw(GameTime gameTime)
         {
             SpriteBatch spriteBatch = Game.Services.GetService<SpriteBatch>();
@@ -74,30 +76,62 @@ namespace MobileGame
 
             spriteBatch.Begin();
 
-            spriteBatch.Draw(TEX_Player, position, animRect, Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 1f);
-            if (EquippedWeapon.Type == "Sword")
+            if (!isAttacking)
             {
-                AnimateSwords(spriteBatch, gameTime, EquippedWeapon);
+                float rot = (facedWay == PlayerDirection.Right) ? MathHelper.ToRadians(-135) : MathHelper.ToRadians(135);
+                spriteBatch.Draw(EquippedWeapon.Texture, position + new Vector2(EquippedWeapon.Texture.Width, EquippedWeapon.Texture.Height / 2), null, Color.White, rot, new Vector2(TEX_Player.Width / 2, TEX_Player.Height / 2), baseScale, SpriteEffects.None, 0f);
             }
+            spriteBatch.Draw(TEX_Player, position, null, Color.White, 0f, Vector2.Zero, 2f, (facedWay == PlayerDirection.Right) ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 1f);
+
+            float headRotation;
+            if (isAttacking)
+            {
+                headRotation = MathHelper.ToDegrees((float)Math.Atan2(attackDirection.Y, attackDirection.X));
+            }
+            else
+            {
+                headRotation = MathHelper.ToDegrees((float)Math.Atan2(movementDirection.Y, movementDirection.X));
+            }
+
+            if (facedWay == PlayerDirection.Right)
+            {
+                headRotation = MathHelper.Clamp(headRotation, -30, 30);
+            }
+            else
+            {
+                headRotation = MathHelper.Clamp(headRotation, 30, -30);
+            }
+
+            headRotation = MathHelper.ToRadians(headRotation);
+
+            spriteBatch.Draw(TEX_Player_Head, position + new Vector2(TEX_Player_Head.Width, TEX_Player_Head.Height), null, Color.White, headRotation, new Vector2(TEX_Player_Head.Width / 2, TEX_Player_Head.Height / 2), baseScale, (facedWay == PlayerDirection.Right) ? SpriteEffects.None : SpriteEffects.FlipVertically, 1f);
+            if (isAttacking)
+            {
+                if (EquippedWeapon.Type == "Sword")
+                {
+                    AnimateSwords(spriteBatch, gameTime, EquippedWeapon);
+                }
+            }
+
             //spriteBatch.Draw(EquippedWeapon.Texture, position, null, Color.White, 0f, Vector2.Zero, 3f, SpriteEffects.None, 1f);
 
-
-            spriteBatch.DrawString(TestFont, EquippedWeapon.Name, position + new Vector2(0, 200), Color.Black, 0, Vector2.Zero, 2f, SpriteEffects.None, 1f);
-            spriteBatch.DrawString(TestFont, EquippedWeapon.MinDamage.ToString(), position + new Vector2(0, 220), Color.Black, 0, Vector2.Zero, 2f, SpriteEffects.None, 1f);
-            spriteBatch.DrawString(TestFont, EquippedWeapon.MaxDamage.ToString(), position + new Vector2(0, 240), Color.Black, 0, Vector2.Zero, 2f, SpriteEffects.None, 1f);
-            spriteBatch.DrawString(TestFont, EquippedWeapon.UseTime.ToString(), position + new Vector2(0, 260), Color.Black, 0, Vector2.Zero, 2f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "[" + EquippedWeapon.Name + "]", position + new Vector2(0, 200), Color.Red, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Min Damage: " + EquippedWeapon.TotalMinDamage.ToString(), position + new Vector2(0, 225), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Max Damage: " + EquippedWeapon.TotalMaxDamage.ToString(), position + new Vector2(0, 250), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Use Time: " + EquippedWeapon.UseTime.ToString(), position + new Vector2(0, 275), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Modifier: " + EquippedWeapon.Modifier.ToString(), position + new Vector2(0, 300), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Enchant: " + EquippedWeapon.Enchant.ToString(), position + new Vector2(0, 325), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
             spriteBatch.End();
-
 
             base.Draw(gameTime);
         }
 
-        float animationTime = 0;
-        float currentAngle = 0f;
-        bool switchAnims = false;
+        private float animationTime = 0;
+        private float currentAngle = 0f;
+        private bool switchAnims = false;
+
         internal void AnimateSwords(SpriteBatch spriteBatch, GameTime gameTime, Weapon equippedWeapon)
         {
-
             Vector2 origin = new Vector2(EquippedWeapon.Texture.Width / 2, EquippedWeapon.Texture.Height);
             float startingAngle = (facedWay == PlayerDirection.Right) ? MathHelper.ToRadians(-45) : MathHelper.ToRadians(45);
             float endingAngle = (facedWay == PlayerDirection.Right) ? MathHelper.ToRadians(135) : MathHelper.ToRadians(-135);
@@ -115,14 +149,9 @@ namespace MobileGame
                     animationTime = 0;
                 }
 
-                spriteBatch.Draw(EquippedWeapon.Texture, position + new Vector2(TEX_Player.Width / 2 + equippedWeapon.Texture.Width / 2, 40), null, Color.White, currentAngle, origin, 2f, SpriteEffects.None, 0f);
-            }
-            else
-            {
-                spriteBatch.Draw(EquippedWeapon.Texture, position + new Vector2(TEX_Player.Width / 2 + equippedWeapon.Texture.Width / 2, 40), null, Color.White, startingAngle + holdingAngle, origin, 2f, SpriteEffects.None, 0f);
+                spriteBatch.Draw(EquippedWeapon.Texture, position + new Vector2(TEX_Player.Width / 2 + equippedWeapon.Texture.Width / 2, 40), null, Color.White, currentAngle, origin, baseScale, SpriteEffects.None, 0f);
             }
         }
-
 
         internal void Shoot(GameTime gameTime, float damageModifier)
         {
@@ -130,11 +159,11 @@ namespace MobileGame
             {
                 projectile.AddProjectile(EquippedWeapon.ShootType,
                     0,
-                    (int)(EquippedWeapon.MinDamage * damageModifier),
-                    (int)(EquippedWeapon.MaxDamage * damageModifier),
+                    (int)(EquippedWeapon.TotalMinDamage * damageModifier),
+                    (int)(EquippedWeapon.TotalMaxDamage * damageModifier),
                     2,
                     Vector2.One,
-                    attackDireciton,
+                    attackDirection,
                     position + new Vector2(TEX_Player.Width / 2, TEX_Player.Height / 2 / frameCount),
                     true,
                     false,
@@ -146,12 +175,13 @@ namespace MobileGame
                 shootTimer = gameTime.TotalGameTime.TotalMilliseconds;
             }
         }
+
         internal void Animate(GameTime gameTime)
         {
             if (facedWay == PlayerDirection.Left)
-                currentFrame = 3;
+                currentFrame = 1;
             if (facedWay == PlayerDirection.Right)
-                currentFrame = 2;
+                currentFrame = 0;
         }
     }
 }

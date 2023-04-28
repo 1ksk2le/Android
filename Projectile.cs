@@ -45,7 +45,6 @@ namespace MobileGame
             Speed = speed;
             Color = color;
 
-
             this.lifeTime = TimeSpan.FromSeconds(lifeTime);
             this.elapsedTime = TimeSpan.Zero;
         }
@@ -57,7 +56,6 @@ namespace MobileGame
             elapsedTime += gameTime.ElapsedGameTime;
 
             // Check if the projectile has exceeded its lifetime
-
         }
     }
 
@@ -107,7 +105,6 @@ namespace MobileGame
             }
         }
 
-
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
@@ -118,5 +115,4 @@ namespace MobileGame
             spriteBatch.End();
         }
     }
-
 }

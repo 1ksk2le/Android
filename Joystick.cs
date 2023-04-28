@@ -76,7 +76,7 @@ namespace MobileGame
 
                     Vector2 movementDirection = movementSmallPos - movementLargePos;
                     movementDirection.Normalize();
-                    player.direction = movementDirection;
+                    player.movementDirection = movementDirection;
                     player.position += movementDirection * player.speed / 100f;
 
                     if (distance > 0 && !player.isAttacking)
@@ -112,7 +112,7 @@ namespace MobileGame
 
                     Vector2 attackingDirection = attackSmallPos - attackLargePos;
                     attackingDirection.Normalize();
-                    player.attackDireciton = attackingDirection;
+                    player.attackDirection = attackingDirection;
                     player.isAttacking = true;
 
                     if (distance > 0 && player.isAttacking)
