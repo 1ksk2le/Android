@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using static MobileGame.TextureLoader;
 
 namespace MobileGame
 {
@@ -12,12 +13,14 @@ namespace MobileGame
         private Player player;
         private Joystick joystick;
         private ProjectileManager projectile;
-        private ItemManager weapon;
+        private ItemManager item;
+        private Inventory inventory;
 
         public static SpriteFont TestFont;
 
         public Game1()
         {
+            IsFixedTimeStep = false;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -28,11 +31,14 @@ namespace MobileGame
             TextureLoader.LoadAllTextures(Services);
 
             projectile = new ProjectileManager();
-            weapon = new ItemManager(player);
-            player = new Player(this, projectile, weapon);
+            inventory = new Inventory();
+            item = new ItemManager(player);
+            player = new Player(this, projectile, item, inventory);
             joystick = new Joystick(this, player);
             Components.Add(joystick);
             Components.Add(player);
+
+
 
             base.Initialize();
         }
@@ -43,7 +49,7 @@ namespace MobileGame
             Services.AddService(spriteBatch);
             TestFont = Content.Load<SpriteFont>("Font_Test");
             projectile.LoadContent(Content);
-            weapon.LoadContent(Content);
+            item.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -52,8 +58,14 @@ namespace MobileGame
                 Exit();
 
             projectile.Update(gameTime);
-            weapon.Update(gameTime);
+            item.Update(gameTime);
             player.Update(gameTime);
+
+
+            inventory.AddItemToSlot(new Item(0, 1, 1), 0, 0);
+            inventory.AddItemToSlot(new Item(0, 1, 0), 3, 3);
+            inventory.AddItemToSlot(new Item(0, 0, 0), 3, 4);
+            //inventory.AddItem(new Item(1, 0, 0));
 
             base.Update(gameTime);
         }
@@ -65,7 +77,15 @@ namespace MobileGame
             projectile.Draw(spriteBatch);
             player.Draw(gameTime);
 
+
+
             base.Draw(gameTime);
+
+            spriteBatch.Begin();
+            InventoryRenderer inventoryRenderer = new InventoryRenderer(inventory, TEX_Inventory_Slot, TEX_Inventory_Slot_Outline, new Vector2(200, 200));
+            inventoryRenderer.Draw(spriteBatch);
+            spriteBatch.DrawString(TestFont, "FPS: " + ((int)(1 / (float)gameTime.ElapsedGameTime.TotalSeconds)).ToString() + " FPS", new Vector2(50, 50), Color.Black, 0, Vector2.Zero, 3f, SpriteEffects.None, 1f);
+            spriteBatch.End();
         }
     }
 }

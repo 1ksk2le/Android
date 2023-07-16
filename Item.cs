@@ -34,6 +34,8 @@ namespace MobileGame
         public Texture2D Texture { get; private set; }
         public Color NameColor { get; set; }
         public string BaseName { get; set; }
+        public string ModifierName { get; set; }
+        public string EnchantName { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
         public int Modifier { get; set; }
@@ -43,11 +45,13 @@ namespace MobileGame
         public int ID { get; private set; }
         #endregion
 
-        public Item(Texture2D texture, int id)
+        public Item(int id, int modifier, int enchant)
         {
             ID = id;
-            Texture = texture;
+            Texture = WEP_Test_Sword;
             BaseName = "";
+            ModifierName = "";
+            EnchantName = "";
             Type = "";
             DamageType = "";
             MinDamage = 0;
@@ -59,8 +63,8 @@ namespace MobileGame
             ProjectileLifetime = 0;
             ProjectileDamage = 0f;
             ProjectileVelocity = 0f;
-            Enchant = 0;
-            Modifier = 0;
+            Enchant = enchant;
+            Modifier = modifier;
             Value = 0;
             Rarity = 0;
             ArmorPiercing = 0;
@@ -68,6 +72,8 @@ namespace MobileGame
             ArmorValue = 0;
             ShieldValue = 0;
             SpeedPenalty = 1f;
+            NameColor = Color.White;
+
             SetDefaultValues(id);
         }
 
@@ -75,9 +81,6 @@ namespace MobileGame
 
         public void Update(GameTime gameTime)
         {
-            string ModifierName = "";
-            string EnchantName = "";
-
             AdditionalDamage = ModifierDamage + EnchantDamage;
             if (AdditionalDamage != 0f)
             {
@@ -88,6 +91,39 @@ namespace MobileGame
             {
                 TotalMinDamage = MinDamage;
                 TotalMaxDamage = MaxDamage;
+            }
+
+
+        }
+
+        public void SetDefaultValues(int id)
+        {
+            WeaponStats(id);
+            ChestplateStats(id);
+
+            switch (Rarity)
+            {
+                case 0:
+                    NameColor = Color.White;
+                    break;
+                case 1:
+                    NameColor = Color.LightBlue;
+                    break;
+                case 2:
+                    NameColor = Color.LightGreen;
+                    break;
+                case 3:
+                    NameColor = Color.DarkBlue;
+                    break;
+                case 4:
+                    NameColor = Color.DarkGreen;
+                    break;
+                case 5:
+                    NameColor = Color.Orange;
+                    break;
+                default:
+                    NameColor = Color.Gray;
+                    break;
             }
 
             switch (Modifier)
@@ -147,38 +183,6 @@ namespace MobileGame
             {
                 Name = BaseName;
             }
-
-            switch (Rarity)
-            {
-                case 0:
-                    NameColor = Color.White;
-                    break;
-                case 1:
-                    NameColor = Color.LightBlue;
-                    break;
-                case 2:
-                    NameColor = Color.LightGreen;
-                    break;
-                case 3:
-                    NameColor = Color.DarkBlue;
-                    break;
-                case 4:
-                    NameColor = Color.DarkGreen;
-                    break;
-                case 5:
-                    NameColor = Color.Orange;
-                    break;
-                default:
-                    NameColor = Color.Gray;
-                    break;
-            }
-        }
-
-        public void SetDefaultValues(int id)
-        {
-            WeaponStats(id);
-            ChestplateStats(id);
-
         }
 
         public void WeaponStats(int id)
@@ -189,6 +193,7 @@ namespace MobileGame
                     BaseName = "Test Wand";
                     Type = "Wand";
                     DamageType = "Magic";
+                    Texture = WEP_Test_Wand;
                     MinDamage = 10;
                     MaxDamage = 20;
                     UseTime = 200;
@@ -206,6 +211,7 @@ namespace MobileGame
                     BaseName = "Test Sword";
                     Type = "Sword";
                     DamageType = "Melee";
+                    Texture = WEP_Test_Sword;
                     MinDamage = 10;
                     MaxDamage = 20;
                     UseTime = 500;
@@ -255,23 +261,21 @@ namespace MobileGame
             itemLoader = new Dictionary<int, Texture2D>();
         }
 
-        public void NewWeapon(int id)
+        public void NewItem(int id, int modifier, int enchant)
         {
-            Texture2D itemData = itemLoader[id];
-            Item newItem = new Item(itemData, id);
+            Item newItem = new Item(id, modifier, enchant);
             items.Add(newItem);
         }
 
         public void LoadContent(ContentManager content)
         {
-            itemLoader.Add(-1, (TEX_Player));
             itemLoader.Add(0, (WEP_Test_Wand));
             itemLoader.Add(1, (WEP_Test_Sword));
             itemLoader.Add(100, (WEP_Test_Sword));
 
             foreach (int id in itemLoader.Keys)
             {
-                NewWeapon(id);
+                NewItem(id, 0, 0);
             }
         }
 

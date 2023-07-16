@@ -17,6 +17,7 @@ namespace MobileGame
         private static int currentFrame = 0;
         private ProjectileManager projectile;
         private ItemManager item;
+        private Inventory inventory;
         private double shootTimer = 0;
         public PlayerDirection facedWay { get; set; } = PlayerDirection.Right;
 
@@ -34,15 +35,16 @@ namespace MobileGame
 
         private const float baseScale = 2f;
 
-        private Item EquippedWeapon => item.GetItem(EquippedWeaponID);
+        private Item EquippedWeapon => inventory.GetItemAt(0, 0);
         private Item EquippedChestplate => item.GetItem(EquippedChestplateID);
 
         private Texture2D weaponTexture;
 
         // Constructor
-        public Player(Game game, ProjectileManager projectileManager, ItemManager item) : base(game)
+        public Player(Game game, ProjectileManager projectileManager, ItemManager item, Inventory inventory) : base(game)
         {
             this.item = item;
+            this.inventory = inventory;
             this.projectile = projectileManager;
             attackDirection = Vector2.Zero;
             isAttacking = false;
@@ -59,15 +61,12 @@ namespace MobileGame
         {
             speed = EquippedChestplate.SpeedPenalty * 200f;
             Animate(gameTime);
-            Shoot(gameTime, EquippedWeapon.ProjectileDamage);
+            //Shoot(gameTime, EquippedWeapon.ProjectileDamage);
+
 
             base.Update(gameTime);
 
-            EquippedWeaponID = 1;
             EquippedChestplateID = 0;
-            EquippedWeapon.Modifier = 1;
-            EquippedWeapon.Enchant = 2;
-            EquippedWeapon.Rarity = 5;
             //position = new Vector2(100, 100);
         }
 
@@ -101,9 +100,9 @@ namespace MobileGame
 
             //spriteBatch.Draw(EquippedWeapon.Texture, position, null, Color.White, 0f, Vector2.Zero, 3f, SpriteEffects.None, 1f);
 
-            spriteBatch.DrawString(TestFont, "[" + EquippedWeapon.Name + "]", position + new Vector2(0, 100), EquippedWeapon.NameColor, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
-            spriteBatch.DrawString(TestFont, EquippedWeapon.TotalMinDamage.ToString() + "-" + EquippedWeapon.TotalMaxDamage.ToString() + " " + EquippedWeapon.DamageType.ToString() + " damage", position + new Vector2(0, 125), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
-            spriteBatch.DrawString(TestFont, "Use Time: " + ((float)(EquippedWeapon.UseTime / 1000)).ToString() + " seconds", position + new Vector2(0, 150), Color.Black, 0, Vector2.Zero, baseScale, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "[" + EquippedWeapon.Name + "]", position + new Vector2(0, 100), EquippedWeapon.NameColor, 0, Vector2.Zero, baseScale * 1.5f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, EquippedWeapon.TotalMinDamage.ToString() + "-" + EquippedWeapon.TotalMaxDamage.ToString() + " " + EquippedWeapon.DamageType.ToString() + " damage", position + new Vector2(0, 135), Color.Black, 0, Vector2.Zero, baseScale * 1.5f, SpriteEffects.None, 1f);
+            spriteBatch.DrawString(TestFont, "Use Time: " + ((float)(EquippedWeapon.UseTime / 1000)).ToString() + " seconds", position + new Vector2(0, 170), Color.Black, 0, Vector2.Zero, baseScale * 1.5f, SpriteEffects.None, 1f);
             spriteBatch.End();
 
             base.Draw(gameTime);
